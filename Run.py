@@ -1,9 +1,10 @@
-import gym
+# import gym
 from PaperTennis_env import PaperTennisEnv
 import numpy as np
-import math
+# import math
 import matplotlib.pyplot as plt
 import time
+import pickle
 
 start_time = time.time()
 
@@ -16,12 +17,10 @@ https://github.com/ankitdhall/CartPole/blob/master/Qlearning-linear.py
 
 #Hyperparms
 OPPONENT=2
-NUM_EPISODES = 1000000
+NUM_EPISODES = 100000
 GAMMA = 0.9
 ALPHA = 0.1
 E_GREEDY = 0.1
-
-
 
 # Get action e-greedy
 def get_action(state,Q_val):
@@ -42,7 +41,7 @@ def get_action(state,Q_val):
 # init env
 env = PaperTennisEnv()
 
-# Init Q_vals
+# Init value method
 Q_val = np.zeros([5,51,51,50])
 
 # Plotting Stuff

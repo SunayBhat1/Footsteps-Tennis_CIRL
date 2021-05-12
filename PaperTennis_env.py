@@ -91,7 +91,7 @@ class PaperTennisEnv(gym.Env):
                 elif (G == -1):
                     play = round(S_self/2) - round(np.random.gamma(2,4))
                 elif (G == -2):
-                    play = S_self
+                    play = int(S_self)
                 
             # Uniform Random Player
             if opponent == 4:
@@ -99,7 +99,7 @@ class PaperTennisEnv(gym.Env):
 
             iter_play += 1
 
-        return play
+        return int(play)
 
         
     def step(self, action,opponent=4):
