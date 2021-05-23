@@ -1,5 +1,7 @@
 import gym
+from gym import spaces, logger
 import numpy as np
+import matplotlib.pyplot as plt
 
 class PaperTennisEnv(gym.Env):
     # A PaperTennis Startegy Game environment for OpenAI gym
@@ -22,7 +24,8 @@ class PaperTennisEnv(gym.Env):
 
     Actions:
         Num   Action
-        0     Push cart to the left
+        0-50  Possible actions are determined by available score. Invalid action will be returned, and a non-zero action is also
+              required unless the player has a score of 0.
 
     Reward:
     Starting State:
@@ -33,13 +36,24 @@ class PaperTennisEnv(gym.Env):
     # metadata = {'render.modes': ['human']}
 
     def __init__(self,Init_State = (0,50,50)):
-        self.INIT_state = (0,50,50)
+
+        super(PaperTennisEnv, self).__init__()
+
+        self.INIT_STATE = (0,50,50)
         self.state = (0,50,50)
+        self.gameHistory = np.array([])
         self.action_space = np.arange(50)+1
+        self.ep_history = [self.state]
+        self.rounds = 0
 
-        # print('Environment Initialized!')
+        self.action_space = spaces.Discrete(51)
 
-    def select_action(self,opponent):
+        self.observation_space = spaces.Tuple((
+        spaces.Discrete(7),
+        spaces.Discrete(51),
+        spaces.Discrete(51)))
+
+    def get_opponent_action(self,opponent):
         G = -self.state[0]
         S_self = self.state[2]
         S_opponent = self.state[1]
@@ -108,11 +122,13 @@ class PaperTennisEnv(gym.Env):
         P1 = self.state[1]
         P2 = self.state[2]
 
-        p2_action = self.select_action(opponent)
+        # Get opponent action
+        p2_action = self.get_opponent_action(opponent)
 
         P1 = P1 - action
         P2 = P2 - p2_action
         
+        # Determine next game score
         if (action > p2_action):
             if (GameScore <= 0):
                 GameScore = GameScore - 1
@@ -127,15 +143,14 @@ class PaperTennisEnv(gym.Env):
             GameScore = GameScore
             
         
-        # Stopping condition (angle of pole 3 is in 60:300, ie. over 60 degrees from upright)
+        # Stopping condition G={3,-3} or no points left
         done = bool(
             GameScore == 3
             or GameScore == -3
             or P1+P2 == 0
         )
 
-        self.state = (GameScore,P1,P2)
-
+        # Reward
         if not done:
             reward = 0
         else:
@@ -144,12 +159,35 @@ class PaperTennisEnv(gym.Env):
             else:
                 reward = -1
 
+        # Update state variables
+        self.state = (GameScore,P1,P2)
+        self.ep_history.append(self.state)
+        self.rounds += 1
 
-        return self.state, reward, done
+
+        return self.state, reward, done, {'history':self.ep_history}
 
     def reset(self):
-        self.state = self.INIT_state
+        plt.close()
+        self.state = self.INIT_STATE
+        self.ep_history = [self.state]
+        self.rounds = 0
         # print('Environment Reset!')
 
-    def render(self, mode='human', close=False):
-        print('Rendering')
+    def render(self, render_time = 0.0001):
+        plt.close()
+        plt.style.use('dark_background')
+        img = plt.imread("SupportDocs/court.jpg")
+        fig, (ax1,ax2) = plt.subplots(1,2,figsize=(13, 6),gridspec_kw={'width_ratios': [4, 1]})
+        ax1.imshow(img,extent=[-3, 3, 0, 7])
+        ax1.invert_yaxis()
+        ax1.invert_xaxis()
+        ax1.set_aspect(0.5)
+        ax1.get_yaxis().set_visible(False)
+        ax1.plot(list(list(zip(*self.ep_history))[0]),np.linspace(1,6,self.rounds+1),  linewidth=3, marker='o',markersize=12,color='yellow')
+        ax2.bar(['Self Score', 'Opponent Score'],[self.ep_history[-1][1],self.ep_history[-1][2]])
+        ax2.set_ylim(0, 50)
+        ax1.set_title('Game Progress',fontweight='bold',fontsize = 20)
+        ax2.set_title('Scores',fontweight='bold',fontsize = 20)
+        plt.pause(render_time)
+        
