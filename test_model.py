@@ -8,7 +8,7 @@ import pickle
 NUM_EPISODES = 1000
 RENDER = False
 NUM_STRATS = 4
-STRAT = 'Short'
+STRAT = 'Mean'
 METHOD = 'SARSA_QT'
 Strategy_Shift = 1
 
