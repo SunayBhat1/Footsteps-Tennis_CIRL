@@ -44,7 +44,6 @@ class PaperTennisEnv(gym.Env):
         self.gameHistory = np.array([])
         self.action_space = np.arange(50)+1
         self.ep_history = [self.state]
-        self.rounds = 0
 
         self.action_space = spaces.Discrete(51)
 
@@ -162,7 +161,6 @@ class PaperTennisEnv(gym.Env):
         # Update state variables
         self.state = (GameScore,P1,P2)
         self.ep_history.append(self.state)
-        self.rounds += 1
 
 
         return self.state, reward, done, {'history':self.ep_history}
@@ -171,8 +169,6 @@ class PaperTennisEnv(gym.Env):
         plt.close()
         self.state = self.INIT_STATE
         self.ep_history = [self.state]
-        self.rounds = 0
-        # print('Environment Reset!')
 
     def render(self, render_time = 0.0001):
         plt.close()
