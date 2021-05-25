@@ -1,39 +1,32 @@
 # test render
 from PaperTennis_env import PaperTennisEnv
+from AC_NN import Actor
+import torch
 import matplotlib.pyplot as plt
 import numpy as np
-import pickle
 
-#HParms
+#HParms 
 NUM_EPISODES = 1000
 RENDER = False
-NUM_STRATS = 4
-STRAT = 'Mean'
-METHOD = 'SARSA_QT'
+STRAT = 'Random'
+METHOD = 'Actor_NN'
+add_info = ''
 Strategy_Shift = 1
 
-# Setup opponent strategy
-Startegies = {
-    "Mean": 1,
-    "Long": 2,
-    "Short": 3,
-    "Rand": 4,
-    "Combo": 5
-}
-
-# Get Opponent Startegy Vector
-if Startegies[STRAT] < 5:
-    OPP_Strat = np.repeat(Startegies[STRAT], NUM_EPISODES)
-else:
-    OPP_Strat = np.around(np.random.uniform(0,3,int(NUM_EPISODES/Strategy_Shift))+1)
-    OPP_Strat = np.repeat(OPP_Strat, Strategy_Shift)
-
-
 # Load a Strategy
-train_episodes, Q_val = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD + '.p', "rb" ))
+# train_episodes, Q_val = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD + add_info + '.p', "rb" ))
+# print('Episodes Trained {}'.format(train_episodes))
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+env = PaperTennisEnv()
+state_size = len(env.observation_space.spaces)
+action_size = env.action_space.n
+model = torch.load('TrainedModels/' + STRAT + '_' +  METHOD + '.pkl')
+actor = Actor(state_size, action_size).to(device)
+actor.load_state_dict(model)
 
 # Get action
-def get_action(state,Q_val):
+def get_action_QT(state,Q_val):
     if state[1] == 0:
         return 0
 
@@ -44,14 +37,23 @@ def get_action(state,Q_val):
 
     return np.argmax(q_s) + 1
 
+def get_action_AC(state,actor):
+    s = torch.FloatTensor(state).to(device)
+    dist = actor(s)
+    return dist.sample()
 
-# Create Environment and wins vector
-env = PaperTennisEnv()
-wins = np.zeros((NUM_STRATS,NUM_EPISODES))
+# Create Environment and wins vector 
+wins = np.zeros((5,NUM_EPISODES))
 
 # Setup Plot
 
-for opp_strategy in range(1,NUM_STRATS+1):
+for opp_strategy in range(1,6):
+
+    # Get Opponent Startegy Vector
+    if opp_strategy < 5:
+        OPP_Strat = np.repeat(opp_strategy, NUM_EPISODES)
+    else:
+        OPP_Strat = np.around(np.random.uniform(1,4,NUM_EPISODES))
 
     for episode in range(NUM_EPISODES):
 
@@ -60,26 +62,26 @@ for opp_strategy in range(1,NUM_STRATS+1):
         done = False
         while not done:
             if RENDER: env.render()
-            action = get_action(state,Q_val)
+            # action = get_action_QT(state,Q_val)
+            action = get_action_AC(state,actor)
 
-            state, reward, done,_ = env.step(action,opp_strategy)
+            state, reward, done,_ = env.step(action,OPP_Strat[episode])
 
-        if (reward == 1):
-            wins[opp_strategy-1,episode] = 1
+        if (reward == 1): wins[opp_strategy-1,episode] = 1
 
 env.reset()
 
-x = ['Mean','Long','Short','Rand']
+x = ['Mean','Long','Short','Naive','Random']
 win_percent = np.around(np.count_nonzero(wins,axis=1)/np.shape(wins)[1] * 100,2)
 
 plt.style.use('bmh')
 plt.figure(1,figsize=(10,6), dpi=100,facecolor='w', edgecolor='k')
 plt.bar(x,win_percent)
-plt.title('{} Trained Agent Win Percent\n Test Episodes: {}'.format(STRAT,NUM_EPISODES),fontweight='bold',fontsize = 15)
+plt.title('{} Trained Agent Win Percent {}\n Test Episodes: {}'.format(STRAT,add_info,NUM_EPISODES),fontweight='bold',fontsize = 15)
 plt.xlabel('Opponent Strategies',fontweight='bold',fontsize = 12)
 plt.ylabel('Win %',fontweight='bold',fontsize = 12)
 for i,y in enumerate(win_percent):
         plt.text(i, y, y, ha = 'center',fontweight='bold',fontsize = 12)
 
-plt.savefig('TestResults/' + STRAT + '_Agent_' + METHOD + '.png')
+plt.savefig('TestResults/' + STRAT + '_Agent_' + METHOD + add_info + '.png')
 plt.show()
