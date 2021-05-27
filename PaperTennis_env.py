@@ -35,22 +35,23 @@ class PaperTennisEnv(gym.Env):
 
     # metadata = {'render.modes': ['human']}
 
-    def __init__(self,Init_State = (0,50,50)):
+    def __init__(self,Init_State = (0,35,35)):
 
         super(PaperTennisEnv, self).__init__()
 
-        self.INIT_STATE = (0,50,50)
-        self.state = (0,50,50)
+        self.INIT_STATE = Init_State
+        self.state = self.INIT_STATE
         self.gameHistory = np.array([])
         self.action_space = np.arange(50)+1
         self.ep_history = [self.state]
+        self.rounds = 0
 
         self.action_space = spaces.Discrete(51)
 
         self.observation_space = spaces.Tuple((
         spaces.Discrete(7),
-        spaces.Discrete(51),
-        spaces.Discrete(51)))
+        spaces.Discrete(self.state[1]+1),
+        spaces.Discrete(self.state[1]+1)))
 
     def get_opponent_action(self,opponent):
         G = -self.state[0]
@@ -159,6 +160,7 @@ class PaperTennisEnv(gym.Env):
                 reward = -1
 
         # Update state variables
+        self.rounds +=1
         self.state = (GameScore,P1,P2)
         self.ep_history.append(self.state)
 
@@ -169,6 +171,7 @@ class PaperTennisEnv(gym.Env):
         plt.close()
         self.state = self.INIT_STATE
         self.ep_history = [self.state]
+        self.rounds = 0
 
     def render(self, render_time = 0.0001):
         plt.close()
@@ -182,7 +185,7 @@ class PaperTennisEnv(gym.Env):
         ax1.get_yaxis().set_visible(False)
         ax1.plot(list(list(zip(*self.ep_history))[0]),np.linspace(1,6,self.rounds+1),  linewidth=3, marker='o',markersize=12,color='yellow')
         ax2.bar(['Self Score', 'Opponent Score'],[self.ep_history[-1][1],self.ep_history[-1][2]])
-        ax2.set_ylim(0, 50)
+        ax2.set_ylim(0, self.INIT_STATE[1])
         ax1.set_title('Game Progress',fontweight='bold',fontsize = 20)
         ax2.set_title('Scores',fontweight='bold',fontsize = 20)
         plt.pause(render_time)
