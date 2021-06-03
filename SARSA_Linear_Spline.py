@@ -167,6 +167,6 @@ ax4.set_xlabel('Episode', fontweight='bold',fontsize = 12)
 ax4.set_ylabel('TD Error', fontweight='bold',fontsize = 12)
 ax4.grid()
 
-fig.savefig('TrainResults/' + STRATEGY + '_SARSA_QT_Train' + add_info + '.png')
-fig2.savefig('TrainResults/' + STRATEGY + '_SARSA_QT_TD' + add_info + '.png')
+fig.savefig('TrainResults/' + STRATEGY + '_SARSA_LS_Train' + add_info + '.png')
+fig2.savefig('TrainResults/' + STRATEGY + '_SARSA_LS_TD' + add_info + '.png')
 plt.show()

@@ -20,8 +20,8 @@ learnrate = 0.0001
 # Parms
 STRATEGY = 'Random'
 add_info = ''
-NUM_EPISODES = 1000
-mean_window = 100
+NUM_EPISODES = 110
+mean_window = 10
 OPP_FREQ = 1
 
 # Get Strategy index
@@ -42,6 +42,7 @@ else:
 
 # Plot stuff
 trend_wins = np.zeros(NUM_EPISODES-100)
+trend_wins10 = np.zeros(NUM_EPISODES-10)
 wins = np.zeros(NUM_EPISODES)
 
 # Define Actor and Critic NNs
@@ -128,6 +129,7 @@ if __name__ == '__main__':
             if done:
                 if reward == 1: wins[episode] = 1
                 if episode >= 100: trend_wins[episode-100] = np.sum(wins[episode-100:episode])
+                if episode >= 10: trend_wins10[episode-10] = np.sum(wins[episode-10:episode])
                 break
 
 
@@ -161,6 +163,7 @@ if __name__ == '__main__':
     fig.suptitle('Actor-Critic Neural Network {} Agent\n Last 10k: {:.2f}% Wins'.format(STRATEGY,(np.mean(trend_wins[-100:]))),fontweight='bold',fontsize = 16)
 
     ax1.plot(range(100,NUM_EPISODES),trend_wins)
+    ax1.plot(range(10,NUM_EPISODES),trend_wins10*10)
     ax1.set_title('Running 100 Win%',fontweight='bold',fontsize = 15)
     ax1.set_xlabel('Episode',fontweight='bold',fontsize = 12)
     ax1.set_ylabel('Win %',fontweight='bold',fontsize = 12)
@@ -177,8 +180,10 @@ if __name__ == '__main__':
         ax3.plot(range(100,NUM_EPISODES),OPP_Strat[100:] , 'r-',alpha=0.3)
         ax3.set_ylabel('Strategy', color='r')
 
-    fig.savefig('TrainResults/' + STRATEGY + '_AC_NN_Train' + add_info + '.png')
+    # fig.savefig('TrainResults/' + STRATEGY + '_AC_NN_Train' + add_info + '.png')
     plt.show()
+
+
 
 
 
