@@ -1,4 +1,4 @@
-from PaperTennis_env import PaperTennisEnv
+from PaperTennis_env_old import PaperTennisEnv
 import gym, os
 import torch
 import torch.nn as nn
@@ -19,10 +19,10 @@ learnrate = 0.0001
 
 # Parms
 STRATEGY = 'Random'
-add_info = ''
-NUM_EPISODES = 110
+add_info = '_f1000'
+NUM_EPISODES = 10000
 mean_window = 10
-OPP_FREQ = 1
+OPP_FREQ = 1000
 
 # Get Strategy index
 Strategies = {
@@ -53,7 +53,7 @@ class Actor(nn.Module):
         self.action_size = action_size
         self.linear1 = nn.Linear(self.state_size, 128)
         self.linear2 = nn.Linear(128, 256)
-        self.linear3 = nn.Linear(256, self.action_size)
+        self.linear3 = nn.Linear(256, self.action_size-1)
 
     def forward(self, state):
         output = F.relu(self.linear1(state))
@@ -79,7 +79,7 @@ class Critic(nn.Module):
         return value
 
 # Define Functions for use
-def compute_returns(next_value, rewards, masks, gamma=0.99):
+def compute_returns(next_value, rewards, masks, gamma=1):
     R = next_value
     returns = []
     for step in reversed(range(len(rewards))):
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     optimizerC = optim.Adam(critic.parameters(),lr=learnrate)
 
     ### Train
-    for episode in tqdm(range(NUM_EPISODES)):
+    for episode in tqdm(range(NUM_EPISODES),ncols=100):
         
         env.reset()
         state = env.state
@@ -109,12 +109,13 @@ if __name__ == '__main__':
         entropy = 0
 
         while not done:
-
             state = torch.FloatTensor(state).to(device)
             dist, value = actor(state), critic(state)
 
             action = dist.sample()
-            next_state, reward, done, info = env.step(action.cpu().numpy(),OPP_Strat[episode])
+            if env.state[1] > 0: true_action = int(action.cpu().numpy()*env.state[1]/51)+1
+            else: true_action = 0
+            next_state, reward, done, info = env.step(true_action,OPP_Strat[episode])
 
             log_prob = dist.log_prob(action).unsqueeze(0)
             entropy += dist.entropy().mean()
@@ -155,7 +156,7 @@ if __name__ == '__main__':
 
 
 
-    torch.save(actor.state_dict(), 'TrainedModels/' + STRATEGY + '_Actor_NN.pkl')
+    torch.save(actor.state_dict(), 'TrainedModels/' + STRATEGY + '_Actor_NN.pt')
 
     ## Plotting
 
@@ -163,7 +164,6 @@ if __name__ == '__main__':
     fig.suptitle('Actor-Critic Neural Network {} Agent\n Last 10k: {:.2f}% Wins'.format(STRATEGY,(np.mean(trend_wins[-100:]))),fontweight='bold',fontsize = 16)
 
     ax1.plot(range(100,NUM_EPISODES),trend_wins)
-    ax1.plot(range(10,NUM_EPISODES),trend_wins10*10)
     ax1.set_title('Running 100 Win%',fontweight='bold',fontsize = 15)
     ax1.set_xlabel('Episode',fontweight='bold',fontsize = 12)
     ax1.set_ylabel('Win %',fontweight='bold',fontsize = 12)
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         ax3.plot(range(100,NUM_EPISODES),OPP_Strat[100:] , 'r-',alpha=0.3)
         ax3.set_ylabel('Strategy', color='r')
 
-    # fig.savefig('TrainResults/' + STRATEGY + '_AC_NN_Train' + add_info + '.png')
+    fig.savefig('TrainResults/' + STRATEGY + '_AC_NN_Train' + add_info + '.png')
     plt.show()
 
 

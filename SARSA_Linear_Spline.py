@@ -1,4 +1,4 @@
-from PaperTennis_env import PaperTennisEnv
+from PaperTennis_env_old import PaperTennisEnv
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -10,12 +10,12 @@ from tqdm import tqdm
 #Hyperparms
 #Hyperparms
 STRATEGY = 'Random'
-add_info = ''
+add_info = '_f1000'
 GAMMA = 1
 ALPHA = 0.01
 E_GREEDY = 0.05
 NUM_EPISODES = 10000
-OPP_FREQ = 1
+OPP_FREQ = 1000
 mean_window = 100
 
 
@@ -98,7 +98,7 @@ trend_TD = np.zeros(NUM_EPISODES-100)
 wins = np.zeros(NUM_EPISODES)
 td_error = np.zeros(NUM_EPISODES)
 
-for episode in  tqdm(range(NUM_EPISODES)):
+for episode in  tqdm(range(NUM_EPISODES),ncols=100):
 
     env.reset()
     state = env.state
@@ -115,6 +115,8 @@ for episode in  tqdm(range(NUM_EPISODES)):
 
         # Get Action e-greedy
         action_prime = get_action(w[state_prime[0],:], state_prime)
+
+        if action_prime>state_prime[1]: print('Error! State: {}, Action {}'.format(state_prime,action_prime))
         
         # Linear SARSA update (Section 10.1, psuedocode) 
         td_update = (reward + GAMMA * Q_value(state_prime,action_prime,w[state_prime[0],:])-
@@ -141,7 +143,7 @@ pickle.dump([train_episodes,w], open('TrainedModels/' + STRATEGY + '_SARSA_LS' +
 ## Plotting
 
 fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(14,6), dpi= 150, facecolor='w', edgecolor='k')
-fig.suptitle('SARSA Q-Table {} Agent\n Last 10k: {:.2f}% Wins'.format(STRATEGY,(np.mean(trend_wins[-100:]))),fontweight='bold',fontsize = 16)
+fig.suptitle('SARSA Linear Spline {} Agent\n Last 10k: {:.2f}% Wins'.format(STRATEGY,(np.mean(trend_wins[-100:]))),fontweight='bold',fontsize = 16)
 
 ax1.plot(range(100,NUM_EPISODES),trend_wins)
 ax1.set_title('Running 100 Win%',fontweight='bold',fontsize = 15)

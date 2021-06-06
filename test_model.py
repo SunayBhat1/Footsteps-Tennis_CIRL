@@ -8,26 +8,26 @@ import pickle
 from tqdm import tqdm
 
 #HParms 
-NUM_EPISODES = 1000
+NUM_EPISODES = 500
 RENDER = False
 STRAT = 'Random'
-METHOD = 'Actor_NN'
+METHOD = 'SARSA_LS'
 add_info = ''
 Strategy_Shift = 1
 
 # Load a Strategy
-# train_episodes, Q_val = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD + add_info + '.p', "rb" ))
+# train_episodes, Q_val = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD + add_info + '.pt', "rb" ))
 # print('Episodes Trained {}'.format(train_episodes))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-env = PaperTennisEnv()
-state_size = len(env.observation_space.spaces)
-action_size = env.action_space.n
-model = torch.load('TrainedModels/' + STRAT + '_' +  METHOD + '.pkl')
-actor = Actor(state_size, action_size).to(device)
-actor.load_state_dict(model)
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# env = PaperTennisEnv()
+# state_size = len(env.observation_space.spaces)
+# action_size = env.action_space.n
+# model = torch.load('TrainedModels/' + STRAT + '_' +  METHOD + '.pt')
+# actor = Actor(state_size, action_size).to(device)
+# actor.load_state_dict(model)
 
-# train_episodes, w = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD  + '.p', "rb" ))
+train_episodes, w = pickle.load(open('TrainedModels/' + STRAT + '_' + METHOD  + '.p', "rb" ))
 
 
 # Get action
@@ -43,9 +43,10 @@ def get_action_QT(state,Q_val):
     return np.argmax(q_s) + 1
 
 def get_action_AC(state,actor):
-    s = torch.FloatTensor(state).to(device)
+    if state[1] == 0: return 0
+    s = torch.FloatTensor(state)
     dist = actor(s)
-    return dist.sample()
+    return  int(dist.sample().cpu().numpy()*state[1]/51)+1
 
 # Function approx to compute
 def get_features(state,action):
@@ -96,7 +97,7 @@ wins = np.zeros((5,NUM_EPISODES))
 env = PaperTennisEnv()
 
 # Run Through Strategies
-for opp_strategy in tqdm(range(1,6)):
+for opp_strategy in tqdm(range(1,6),ncols=100):
 
     # Get Opponent Startegy Vector
     if opp_strategy < 5:
@@ -112,10 +113,9 @@ for opp_strategy in tqdm(range(1,6)):
         while not done:
             if RENDER: env.render()
             # action = get_action_QT(state,Q_val)
-            action = get_action_AC(state,actor)
-            # action = get_action_LS(w[state[0],:], state)
-
-            state, reward, done,_ = env.step(action,OPP_Strat[episode])
+            # action = get_action_AC(state,actor)
+            action = get_action_LS(w[state[0],:], state)
+            state, reward, done, _ = env.step(action,int(OPP_Strat[episode]))
 
         if (reward == 1): wins[opp_strategy-1,episode] = 1
 
@@ -133,5 +133,5 @@ plt.ylabel('Win %',fontweight='bold',fontsize = 12)
 for i,y in enumerate(win_percent):
         plt.text(i, y, y, ha = 'center',fontweight='bold',fontsize = 12)
 
-plt.savefig('TestResults/' + STRAT + '_Agent_' + METHOD + add_info + '.png')
+# plt.savefig('TestResults/' + STRAT + '_Agent_' + METHOD + add_info + '.png')
 plt.show()
