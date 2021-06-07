@@ -29,12 +29,12 @@ class PT_Fixed_Oppenent():
 
             mean_play = S2/2
 
-            # Mean player
+            # Mean (Middle-Ground) player
             if opponent == 1:
                 if (G == 0): play = round(np.random.normal(10, 1))
                 else: play = round(np.random.normal(mean_play,1))
                 
-            # Long Player
+            # Long (Cautious) Player
             if opponent == 2:
                 if (G == 0): play = round(np.random.gamma(2,4))
                 elif (G == 1): play = round(np.random.gamma(2,4))
@@ -42,7 +42,7 @@ class PT_Fixed_Oppenent():
                 elif (G == -1): play = round(np.random.normal(mean_play,1))
                 elif (G == -2): play = S2 + 1 - round(np.random.gamma(1,2))
                 
-            # Short Player
+            # Short (Aggressive) Player
             if opponent == 3:
                 if (G == 0): play = 20 - round(np.random.gamma(2,4))
                 elif (G == 1): play = round(np.random.normal(mean_play,1))

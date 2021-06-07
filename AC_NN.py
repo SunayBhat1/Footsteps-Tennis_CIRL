@@ -1,10 +1,4 @@
-from PaperTennis_env_old import PaperTennisEnv
-import gym, os
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torch.distributions import Categorical
+from PaperTennis_env import PaperTennisEnv
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np

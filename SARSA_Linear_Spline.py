@@ -1,4 +1,4 @@
-from PaperTennis_env_old import PaperTennisEnv
+from PaperTennis_env import PaperTennisEnv
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -133,7 +133,7 @@ for episode in  tqdm(range(NUM_EPISODES),ncols=100):
     # Track progress
     td_error[episode] = error_episode
     if episode >= 100: trend_wins[episode-100] = np.sum(wins[episode-100:episode])    
-        
+
 # Update total episode count
 train_episodes += episode +1
 

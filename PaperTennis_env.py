@@ -73,8 +73,9 @@ class PaperTennisEnv(gym.Env):
 
     Other Files
     ----------
-    PaperTennisOpponent.py - Contains classes for fixed opponennt strategies or strategies generated using Genetic Programming
-                             Only used for single agent environment. 
+    SupportDocs/PaperTennisOpponent.py - Contains classes for fixed opponennt strategies or strategies generated using Genetic Programming
+                             Only used for single agent environment.
+    SupportDocs/court.jpg - Background image for render. 
     """
 
     def __init__(self,gamespace = (7,50),opponent_strategy=4,opponent_source = 'Fixed'):
