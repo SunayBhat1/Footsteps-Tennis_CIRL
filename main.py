@@ -3,24 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 from urllib import request
+import sys
 
-notify = True
+notify = False
 
 gamespace = (7,50)
-args = {
-        'OPP_STRAT' : 2,
+args = { # 1-5
+        'OPP_STRAT' : 1,
         # Default 1
         'OPP_FREQ' : 1,
         # Default 1000000
-        'NUM_EPISODES' : 100000, # All        !!!! Change for LSFA
-        # Default 1
-        'GAMMA' : 1, # All
+        'NUM_EPISODES' : 10000, # All        !!!! Change for LSFA
+        # Default 0.9,1 (QT, LSFA)          
+        'GAMMA' : 0.9, # All
         # Default 0.1, 0.01, 0.0001   (QT,LSFA,DNN)
-        'ALPHA' : 0.1, # SARSA, MC, LSFA    !!!! Change for LSFA
+        'ALPHA' : 0.0001, # SARSA, MC, LSFA    !!!! Change for LSFA
         # Default 0.1, 0.01
         'EPSILON' : 0.1, # SARSA, MC         !!!! Change for LSFA
         # Default: 10000,100
-        'AVG_WINDOW' : 10000,  #               !!!! Change for LSFA
+        'AVG_WINDOW' : 100,  #               !!!! Change for LSFA
         # Default: 1000
         'TEST_EPISODES': 1000,
         # Default: True
@@ -29,14 +30,14 @@ args = {
         'add_label' : '',
     }
 
-# Agent = PGAC_DNN(args)
-# Agent.train()
-# Agent.evaluate()
+# Agent = SARSA_LSFA(args)
+# Agent.load_model()
+# Agent.render_run(True)
 
 
-# # Run All 
-stringM = 'SARSA Q-Table'
-savepath = 'Data/SARSA_QT/'
+# Run All 
+stringM = 'PG Actor-Critic DNN'
+savepath = 'Data/PGAC_DNN/'
 train_histories = np.zeros((5,args['NUM_EPISODES']))
 win100 = np.zeros((5,args['NUM_EPISODES']-99))
 win_avg = np.zeros((5,args['NUM_EPISODES']-98-args['AVG_WINDOW']))
@@ -51,7 +52,7 @@ ax3.set_title(stringM + ' All Agent Win %\n Number Test Episodes: {}'.format(arg
 
 for i in range (0,5):
     args['OPP_STRAT'] = i+1
-    Agent = SARSA_QTable(args)
+    Agent = PGAC_DNN(args)
     train_histories[i,:] = Agent.train()
     test_win_percent = Agent.evaluate()
 
@@ -86,9 +87,7 @@ fig.savefig( savepath + 'TrainAll.png')
 plt.show()
 
 
-
-
 if notify:
     key = "Lmdwc3Ei4h0vfiIwLA4K0"
-    message = 'Python_Script_Is_Done'
+    message = 'Python_Script_' + sys.argv[0] + '_Is_Done'
     request.urlopen("https://maker.ifttt.com/trigger/notify/with/key/%s?value1=%s" % (key,message))

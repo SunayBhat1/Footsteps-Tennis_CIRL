@@ -112,10 +112,10 @@ class PaperTennisEnv(gym.Env):
         S1 = S1 - action
         S2 = S2 - action2
         
-        if (action > action2):
+        if (action < action2):
             if (G <= 0): G = G - 1
             else: G = -1
-        elif (action < action2):
+        elif (action > action2):
             if (G >= 0): G = G + 1
             else: G = 1
         else: G = G
@@ -130,7 +130,7 @@ class PaperTennisEnv(gym.Env):
         # Reward
         if not done: reward = 0
         else:
-            if G < 0: reward = 1
+            if G > 0: reward = 1
             else: reward = -1
 
         # Update state variables
@@ -153,7 +153,7 @@ class PaperTennisEnv(gym.Env):
         fig, (ax1,ax2) = plt.subplots(1,2,figsize=(13, 6),gridspec_kw={'width_ratios': [4, 1]})
         ax1.imshow(img,extent=[-3, 3, 0, 7])
         ax1.invert_yaxis()
-        ax1.invert_xaxis()
+        # ax1.invert_xaxis()
         ax1.set_aspect(0.5)
         ax1.get_yaxis().set_visible(False)
         ax1.plot(list(list(zip(*self.history))[0]),np.linspace(1,6,np.shape(self.history)[0]),  linewidth=3, marker='o',markersize=12,color='yellow')
@@ -317,7 +317,7 @@ class PaperTennis2AgentEnv(gym.Env):
         fig, (ax1,ax2) = plt.subplots(1,2,figsize=(13, 6),gridspec_kw={'width_ratios': [4, 1]})
         ax1.imshow(img,extent=[-3, 3, 0, 7])
         ax1.invert_yaxis()
-        ax1.invert_xaxis()
+        # ax1.invert_xaxis()
         ax1.set_aspect(0.5)
         ax1.get_yaxis().set_visible(False)
         ax1.plot(list(list(zip(*self.history))[0]),np.linspace(1,6,np.shape(self.history)[0]),  linewidth=3, marker='o',markersize=12,color='yellow')

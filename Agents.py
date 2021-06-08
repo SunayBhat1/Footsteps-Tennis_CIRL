@@ -5,6 +5,7 @@ plt.style.use('seaborn')
 import time
 import pickle
 from tqdm import tqdm
+import cv2
 
 import torch
 import torch.nn as nn
@@ -259,6 +260,28 @@ class SARSA_LSFA():
 
         return self.test_win_percent
 
+    def render_run(self,save_video=False,):
+        print('Rendering:')
+
+        env = PaperTennisEnv(gamespace = self.gamespace,
+                             opponent_strategy = self.opp_strategy,
+                             opponent_source = self.opponent_source)
+
+        if save_video: video_out = cv2.VideoWriter(self.directory + 'Videos/Run_{}.mp4'.format(self.opp_strategy), cv2.VideoWriter_fourcc(*'mp4v'), 3, (975,450))
+        done = False
+        state = env.reset()
+        while not done:
+            if save_video: 
+                img = env.render('rgb_array')
+                video_out.write(img)
+            action = self.get_action(state,self.w[state[0],:])
+            state, reward, done, _ = env.step(action)
+
+        if save_video: 
+            video_out.release()
+            print('Video saved to "' + self.directory + 'Videos/"...')
+
+        env.close()
 
 # SARSA Q-Value Tabular Agent
 class SARSA_QTable():
