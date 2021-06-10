@@ -62,7 +62,7 @@ class SARSA_LSFA():
             self.opp_strat_vector = np.repeat(self.opp_strategy,self.n)
 
         # SARSA LSFA Specific
-        self.w = np.random.rand(5,28)
+        self.w = np.random.rand(5,27)
         self.directory = 'Data/SARSA_LSFA/'
 
         # Save Args in text file
@@ -72,14 +72,14 @@ class SARSA_LSFA():
         pickle.dump([self.train_history,self.w], open(self.directory + self.strat_label + self.label + '_Model.p', 'wb' ))
 
     def reset_model(self): 
-        self.w = np.random.rand(5,28)
+        self.w = np.random.rand(5,27)
         self.train_history = np.array([])
 
     def load_model(self):
         [self.train_history,self.w] = pickle.load(open(self.directory + self.strat_label + self.label + '_Model.p', 'rb' ))
 
     def get_features(self,state,action):
-        feat_vec = np.zeros(28)
+        feat_vec = np.zeros(27)
 
         # Splines : Discretized spaces
         state_splines = [list(range(0,6)),list(range(6,18)),list(range(18,34)),list(range(34,51))]
@@ -95,11 +95,11 @@ class SARSA_LSFA():
 
         # Activate diff indicator
         for i,spline in enumerate(diff_splines):
-            if (state[1]-state[1]) in spline: feat_vec[i+8] = 1
+            if (state[1]-state[2]) in spline: feat_vec[i+8] = 1
         
         # Activate action indicator
         for i,spline in enumerate(action_splines): 
-            if action in spline: feat_vec[i+22] = 1
+            if action in spline: feat_vec[i+21] = 1
             
         return feat_vec
 
@@ -169,7 +169,7 @@ class SARSA_LSFA():
     
         train_iters = 0
         start_time = time.time()
-        while (self.check_stable == True or train_iters < 2):
+        while (self.check_stable == True or train_iters < 1):
             print('Training Iteration {}:'.format(train_iters+1))
             
             env = PaperTennisEnv(gamespace = self.gamespace,
@@ -210,7 +210,7 @@ class SARSA_LSFA():
             if self.check_stable == True:
                 win100 = np.flip(np.convolve(np.flip(wins), np.ones(100), mode='valid'))
                 win_avg = np.flip(np.convolve(np.flip(win100), np.ones(self.mean_window)/self.mean_window, mode='valid'))
-                if win_avg[-1] > 75: self.check_stable = False
+                if win_avg[-1] > 70: self.check_stable = False
                 else:
                     print('Unstable run ({:.2f}%) ...'.format(win_avg[-1]))
                     self.reset_model()
@@ -687,9 +687,9 @@ class Actor(nn.Module):
         super(Actor, self).__init__()
         self.state_size = state_size
         self.action_size = action_size
-        self.linear1 = nn.Linear(self.state_size, 128)
-        self.linear2 = nn.Linear(128, 256)
-        self.linear3 = nn.Linear(256, self.action_size-1)
+        self.linear1 = nn.Linear(self.state_size, 16)
+        self.linear2 = nn.Linear(16, 32)
+        self.linear3 = nn.Linear(32, self.action_size-1)
 
     def forward(self, state):
         output = F.relu(self.linear1(state))
@@ -703,9 +703,9 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
         self.state_size = state_size
         self.action_size = action_size
-        self.linear1 = nn.Linear(self.state_size, 128)
-        self.linear2 = nn.Linear(128, 256)
-        self.linear3 = nn.Linear(256, 1)
+        self.linear1 = nn.Linear(self.state_size, 16)
+        self.linear2 = nn.Linear(16, 32)
+        self.linear3 = nn.Linear(32, 1)
 
     def forward(self, state):
         output = F.relu(self.linear1(state))
@@ -854,7 +854,7 @@ class PGAC_DNN():
         train_iters = 0
         start_time = time.time()
 
-        while (self.check_stable == True or train_iters < 2):
+        while (self.check_stable == True or train_iters < 1):
 
             optimizerA = optim.Adam(self.actor.parameters(),lr=self.alpha)
             optimizerC = optim.Adam(self.critic.parameters(),lr=self.alpha)
