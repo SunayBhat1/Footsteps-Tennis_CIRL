@@ -6,33 +6,35 @@ from urllib import request
 import sys
 import pandas as pd
 
-notify = False
+notify = True
+key = "Lmdwc3Ei4h0vfiIwLA4K0"
+message = 'Python_Script_' + sys.argv[0] + '_Is_Done'
 
 gamespace = (7,50)
 args = { # 1-5
-        'OPP_STRAT' : 1,
+        'OPP_STRAT' : 5,
         # Default 1
-        'OPP_FREQ' : 1000,
+        'OPP_FREQ' : 1,
         # Default 1000000, 10000  (QT, LSFA/DNN)
-        'NUM_EPISODES' : 10000, # All        !!!! Change for LSFA
+        'NUM_EPISODES' : 10000, # All    
         # Default 0.9,1,1 (QT, LSFA,DNN)          
         'GAMMA' : 1,
         # Default 0.2, 0.008, 0.0005  (QT,LSFA,DNN)
-        'ALPHA' : 0.01, # SARSA, MC, LSFA    !!!! Change for LSFA
+        'ALPHA' : 0.008, # SARSA, MC, LSFA    !!!! Change for LSFA
         # Default 0.05, 0.01
-        'EPSILON' : 0.05, # SARSA, MC         !!!! Change for LSFA
+        'EPSILON' : 0.1, # SARSA, MC         !!!! Change for LSFA
         # Default: 10000,100
-        'AVG_WINDOW' : 100,  #               !!!! Change for LSFA
+        'AVG_WINDOW' : 100,  #          
         # Default: 1000
         'TEST_EPISODES': 1000,
         # Default: True
         'CHECK_STABLE': True,
         # Default: ''
-        'add_label' : 'Depth_10',
+        'add_label' : '',
     }
 
 
-# # Run All 
+# Run All LSFA
 stringM = 'SARSA LSFA'
 savepath = 'Data/SARSA_LSFA/'
 train_histories = np.zeros((5,args['NUM_EPISODES']))
@@ -88,76 +90,120 @@ print('In Strategy Mean {}'.format(np.diagonal(test_win_percent).mean()))
 print('Out Strategy Performance: {}'.format(np.mean(np.ma.masked_array(test_win_percent, mask= (np.eye(5))),1)))
 print('Out Strategy Mean {}'.format(np.ma.masked_array(test_win_percent, mask= (np.eye(5))).mean()))
 np.save(savepath + 'TestResults.npy',test_win_percent)
+if notify: request.urlopen("https://maker.ifttt.com/trigger/notify/with/key/%s?value1=%s" % (key,message))
 
 
 
 
 
 
-# # Run All 
-stringM = 'PGAC DNN'
-savepath = 'Data/PGAC_DNN/'
-train_histories = np.zeros((5,args['NUM_EPISODES']))
-win100 = np.zeros((5,args['NUM_EPISODES']-99))
-win_avg = np.zeros((5,args['NUM_EPISODES']-98-args['AVG_WINDOW']))
-test_win_percent = np.zeros((5,5))
+# # Run All PGAC
+# args['ALPHA'] = 0.0005
+# stringM = 'PGAC DNN'
+# savepath = 'Data/PGAC_DNN/'
+# train_histories = np.zeros((5,args['NUM_EPISODES']))
+# win100 = np.zeros((5,args['NUM_EPISODES']-99))
+# win_avg = np.zeros((5,args['NUM_EPISODES']-98-args['AVG_WINDOW']))
+# test_win_percent = np.zeros((5,5))
 
-fig3, (ax4, ax5) = plt.subplots(1, 2,figsize=(15,5.5), facecolor='w', edgecolor='k')
-fig3.suptitle(stringM + ' All Agents Training',fontweight='bold',fontsize = 16)
+# fig3, (ax4, ax5) = plt.subplots(1, 2,figsize=(15,5.5), facecolor='w', edgecolor='k')
+# fig3.suptitle(stringM + ' All Agents Training',fontweight='bold',fontsize = 16)
 
-fig4,ax6 = plt.subplots(1,1,figsize=(10.5,6))
-xlabels = ['Mean','Long','Short','Naive','Dynamic']
-ax6.set_title(stringM + ' All Agent Win %\n Number Test Episodes: {}'.format(args['TEST_EPISODES']),fontweight='bold',fontsize = 15)
+# fig4,ax6 = plt.subplots(1,1,figsize=(10.5,6))
+# xlabels = ['Mean','Long','Short','Naive','Dynamic']
+# ax6.set_title(stringM + ' All Agent Win %\n Number Test Episodes: {}'.format(args['TEST_EPISODES']),fontweight='bold',fontsize = 15)
 
-for i in range (0,5):
-    args['OPP_STRAT'] = i+1
-    Agent = SARSA_LSFA(args)
-    train_histories[i,:] = Agent.train()
-    test_win_percent[i,:] = Agent.evaluate()
+# for i in range (0,5):
+#     args['OPP_STRAT'] = i+1
+#     Agent = PGAC_DNN(args)
+#     train_histories[i,:] = Agent.train()
+#     test_win_percent[i,:] = Agent.evaluate()
 
-    win100[i,:] = np.flip(np.convolve(np.flip(train_histories[i,:]), np.ones(100), mode='valid'))
-    win_avg[i,:] = np.flip(np.convolve(np.flip(win100[i,:]), np.ones(args['AVG_WINDOW'])/args['AVG_WINDOW'], mode='valid'))
-    ax4.plot(range(99,args['NUM_EPISODES']),win100[i,:])
-    ax5.plot(range(99+args['AVG_WINDOW']-1,args['NUM_EPISODES']),win_avg[i,:])
-    ax6.bar(np.arange(5)+i*0.15-0.375,test_win_percent[i,:],width=0.15)
-    for ibar,y in enumerate(test_win_percent[i,:]):
-        ax6.text(ibar+i*0.15-0.375, y, y, ha = 'center',fontweight='bold',fontsize = 6)
+#     win100[i,:] = np.flip(np.convolve(np.flip(train_histories[i,:]), np.ones(100), mode='valid'))
+#     win_avg[i,:] = np.flip(np.convolve(np.flip(win100[i,:]), np.ones(args['AVG_WINDOW'])/args['AVG_WINDOW'], mode='valid'))
+#     ax4.plot(range(99,args['NUM_EPISODES']),win100[i,:])
+#     ax5.plot(range(99+args['AVG_WINDOW']-1,args['NUM_EPISODES']),win_avg[i,:])
+#     ax6.bar(np.arange(5)+i*0.15-0.375,test_win_percent[i,:],width=0.15)
+#     for ibar,y in enumerate(test_win_percent[i,:]):
+#         ax6.text(ibar+i*0.15-0.375, y, y, ha = 'center',fontweight='bold',fontsize = 6)
 
-ax4.set_title('Running 100 Game Win%',fontweight='bold',fontsize = 14)
-ax4.set_xlabel('Episode',fontweight='bold',fontsize = 12)
-ax4.set_ylabel('Last 100 Win %',fontweight='bold',fontsize = 12)
-ax4.grid(True, color='w', linestyle='-', linewidth=1)
-ax4.legend(['Mean','Long','Short','Naive','Dynamic'])
+# ax4.set_title('Running 100 Game Win%',fontweight='bold',fontsize = 14)
+# ax4.set_xlabel('Episode',fontweight='bold',fontsize = 12)
+# ax4.set_ylabel('Last 100 Win %',fontweight='bold',fontsize = 12)
+# ax4.grid(True, color='w', linestyle='-', linewidth=1)
+# ax4.legend(['Mean','Long','Short','Naive','Dynamic'])
 
-ax5.set_title('Running {:,} Avg Win%'.format(args['AVG_WINDOW']), fontweight='bold',fontsize = 14)
-ax5.set_xlabel('Episode', fontweight='bold',fontsize = 12)
-ax5.set_ylabel('Mean Win %', fontweight='bold',fontsize = 12)
-ax5.grid(True, color='w', linestyle='-', linewidth=1)
-ax5.legend(['Mean','Long','Short','Naive','Dynamic'])
+# ax5.set_title('Running {:,} Avg Win%'.format(args['AVG_WINDOW']), fontweight='bold',fontsize = 14)
+# ax5.set_xlabel('Episode', fontweight='bold',fontsize = 12)
+# ax5.set_ylabel('Mean Win %', fontweight='bold',fontsize = 12)
+# ax5.grid(True, color='w', linestyle='-', linewidth=1)
+# ax5.legend(['Mean','Long','Short','Naive','Dynamic'])
 
-ax6.set_xlabel('Opponent Strategies',fontweight='bold',fontsize = 12)
-ax6.set_ylabel('Win %',fontweight='bold',fontsize = 12)
-ax6.set_ylim([0,100])
-ax6.set_xticklabels(['','Mean','Long','Short','Naive','Dynamic'])
-ax6.legend(['Mean','Long','Short','Naive','Dynamic'],title='Trained Agents',loc='center left', frameon=True,bbox_to_anchor=(0.97, 0.5))
+# ax6.set_xlabel('Opponent Strategies',fontweight='bold',fontsize = 12)
+# ax6.set_ylabel('Win %',fontweight='bold',fontsize = 12)
+# ax6.set_ylim([0,100])
+# ax6.set_xticklabels(['','Mean','Long','Short','Naive','Dynamic'])
+# ax6.legend(['Mean','Long','Short','Naive','Dynamic'],title='Trained Agents',loc='center left', frameon=True,bbox_to_anchor=(0.97, 0.5))
 
-fig4.savefig(savepath + 'TestAll.png')
-fig3.savefig( savepath + 'TrainAll.png')
+# fig4.savefig(savepath + 'TestAll.png')
+# fig3.savefig( savepath + 'TrainAll.png')
 
-print('In Strategy Performance: {}'.format(np.diagonal(test_win_percent)))
-print('In Strategy Mean {}'.format(np.diagonal(test_win_percent).mean()))
+# print('In Strategy Performance: {}'.format(np.diagonal(test_win_percent)))
+# print('In Strategy Mean {}'.format(np.diagonal(test_win_percent).mean()))
 
-print('Out Strategy Performance: {}'.format(np.mean(np.ma.masked_array(test_win_percent, mask= (np.eye(5))),1)))
-print('Out Strategy Mean {}'.format(np.ma.masked_array(test_win_percent, mask= (np.eye(5))).mean()))
-np.save(savepath + 'TestResults.npy',test_win_percent)
+# print('Out Strategy Performance: {}'.format(np.mean(np.ma.masked_array(test_win_percent, mask= (np.eye(5))),1)))
+# print('Out Strategy Mean {}'.format(np.ma.masked_array(test_win_percent, mask= (np.eye(5))).mean()))
+# np.save(savepath + 'TestResults.npy',test_win_percent)
+
+# Depth
+# args['CHECK_STABLE']= False
+# args['OPP_FREQ'] = 1000
+# train_histories = np.zeros((args['NUM_EPISODES']))
+# mean_dnn = np.zeros(5)
+# mean_lsfa = np.zeros(5)
+# var_dnn = np.zeros(5)
+# var_lsfa = np.zeros(5)
+
+
+# for i in range(5):
+#     args['add_label'] = '_Depth1000_' + str(i)
+#     args['ALPHA'] = 0.008
+#     Agent = SARSA_LSFA(args)
+#     train_histories = Agent.train()
+#     mean_lsfa[i] = np.mean(train_histories)
+#     var_lsfa[i] = np.std(train_histories)
+#     args['ALPHA'] = 0.0005
+#     Agent = PGAC_DNN(args)
+#     train_histories = Agent.train()
+#     mean_dnn[i] = np.mean(train_histories)
+#     var_dnn[i] = np.std(train_histories)
+
+# fig3, (ax4, ax5) = plt.subplots(1, 2,figsize=(15,5.5), facecolor='w', edgecolor='k')
+# fig3.suptitle('Mean and Std of Depth Performance',fontweight='bold',fontsize = 16)
+# ax4.scatter(range(5),mean_dnn)
+# ax4.scatter(range(5),mean_lsfa)
+# ax4.set_xlabel('Iteration',fontweight='bold',fontsize = 12)
+# ax4.set_ylabel('Mean Performance',fontweight='bold',fontsize = 12)
+# ax4.grid(True, color='w', linestyle='-', linewidth=1)
+# ax4.legend(['DNN','LSFA'])
+
+
+# ax5.scatter(range(5),var_dnn)
+# ax5.scatter(range(5),var_lsfa)
+# ax5.set_xlabel('Iteration',fontweight='bold',fontsize = 12)
+# ax5.set_ylabel('Std of Performance',fontweight='bold',fontsize = 12)
+# ax5.grid(True, color='w', linestyle='-', linewidth=1)
+# ax5.legend(['DNN','LSFA'])
+# fig3.savefig('Data/Depth_Comparison.png')
 
 
 
-if notify:
-    key = "Lmdwc3Ei4h0vfiIwLA4K0"
-    message = 'Python_Script_' + sys.argv[0] + '_Is_Done'
-    request.urlopen("https://maker.ifttt.com/trigger/notify/with/key/%s?value1=%s" % (key,message))
 
-# plt.show()
+
+
+
+
+if notify: request.urlopen("https://maker.ifttt.com/trigger/notify/with/key/%s?value1=%s" % (key,message))
+plt.show()
 
 

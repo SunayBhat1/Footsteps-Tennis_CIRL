@@ -55,7 +55,7 @@ def get_features(state,action):
 
     # Activate diff indicator
     for i,spline in enumerate(diff_splines):
-        if (state[1]-state[1]) in spline: feat_vec[i+8] = 1
+        if (state[1]-state[2]) in spline: feat_vec[i+8] = 1
     
     # Activate action indicator
     for i,spline in enumerate(action_splines): 

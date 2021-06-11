@@ -1,0 +1,5 @@
+{'OPP_STRAT': 1, 'OPP_FREQ': 1, 'NUM_EPISODES': 10000, 'GAMMA': 1, 'ALPHA': 0.01, 'EPSILON': 0.05, 'AVG_WINDOW': 100, 'TEST_EPISODES': 1000, 'CHECK_STABLE': True, 'add_label': 'Depth_10'}
+
+Run Time: 63.00 seconds
+
+Train Iteration: 1

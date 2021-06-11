@@ -926,7 +926,7 @@ class PGAC_DNN():
             if self.check_stable == True:
                 win100 = np.flip(np.convolve(np.flip(wins), np.ones(100), mode='valid'))
                 win_avg = np.flip(np.convolve(np.flip(win100), np.ones(self.mean_window)/self.mean_window, mode='valid'))
-                if win_avg[-1] > 75: self.check_stable = False
+                if win_avg[-1] > 70: self.check_stable = False
                 else:
                     print('Unstable run ({:.2f}%) ...'.format(win_avg[-1]))
                     self.reset_model()
