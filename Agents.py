@@ -107,18 +107,24 @@ class SARSA_LSFA():
         feat_vec = self.get_features(state,action)
         return (weights @ feat_vec).item()
 
-    def get_action(self,state,weights):
+    def get_action(self,state,weights,epsilon=0.1,output_type=1):
 
         if state[1] == 0: return 0
+        elif (state[1] == 1): return 1
     
         sample_epsilon = np.random.uniform(0,1)
-        if (sample_epsilon < self.epsilon): return np.random.randint(1,state[1]+1)
+        if (sample_epsilon < epsilon): return np.random.randint(1,state[1]+1)
 
         q_s = np.zeros(state[1])
 
         for i in range(0,state[1]): q_s[i] = self.Q_value(state,i,weights)
 
-        return np.argmax(q_s) + 1
+        if output_type or epsilon > 0: return np.argmax(q_s) + 1
+        else:
+            Q_vec = np.maximum(0,q_s) # RELU
+            if np.sum(Q_vec) == 0: return np.random.randint(1,state[1]+1)
+            p_vals = Q_vec/np.sum(Q_vec)
+            return np.argmax(np.random.multinomial(1,p_vals)) + 1
 
     def plot(self,type,save_data,iters=1):
         if type == 'train':
@@ -192,7 +198,7 @@ class SARSA_LSFA():
                     state_prime, reward, done, _ = env.step(action)
 
                     # Get Action e-greedy 
-                    action_prime = self.get_action(state_prime,self.w[state_prime[0],:])
+                    action_prime = self.get_action(state_prime,self.w[state_prime[0],:],self.epsilon)
 
                     # SARSA Update
                     td_update = (reward + self.gamma * self.Q_value(state_prime,action_prime,self.w[state_prime[0],:])
@@ -232,7 +238,7 @@ class SARSA_LSFA():
         
         return self.train_history
 
-    def evaluate(self,save_data=True):
+    def evaluate(self,save_data=True,output_type=1):
         print('Evaluating:')
         test_wins = np.zeros((5,self.n_test))
 
@@ -250,7 +256,7 @@ class SARSA_LSFA():
                 state = env.reset(OPP_Strat[episode])
                 done = False
                 while not done:
-                    action = self.get_action(state,self.w[state[0],:])
+                    action = self.get_action(state,self.w[state[0],:],0,output_type)
                     state, reward, done, _ = env.step(action)
 
                 test_wins[opp_strategy-1,episode] = int(reward > 0)
@@ -331,7 +337,7 @@ class SARSA_QTable():
 
         # SARSA QT Specific
         self.space_action_size = [gamespace[0]-2,gamespace[1]+1,gamespace[1]+1,gamespace[1]]  
-        self.Q_val = np.zeros(self.space_action_size)
+        self.Q_val = np.random.rand(gamespace[0]-2,gamespace[1]+1,gamespace[1]+1,gamespace[1])
         self.directory = 'Data/SARSA_QT/'
 
         # Save Args in text file
@@ -343,13 +349,20 @@ class SARSA_QTable():
     def load_model(self):
         [self.train_history,self.Q_val] = pickle.load(open(self.directory + self.strat_label + self.label + '_Model.p', 'rb' ))
 
-    def get_action(self,state):
+    def get_action(self,state,epsilon=0.1,output_type=1):
         if (state[1] == 0): return 0
+        elif (state[1] == 1): return 1
 
         sample_epsilon = np.random.uniform(0,1)
-        if (sample_epsilon < self.epsilon): return np.random.randint(1,state[1]+1)
+        if (sample_epsilon < epsilon): return np.random.randint(1,state[1]+1)
 
-        return np.argmax(self.Q_val[state[0],state[1],state[2],0:state[1]]) + 1
+        if output_type or epsilon > 0: return np.argmax(self.Q_val[state[0],state[1],state[2],0:state[1]]) + 1       
+        else:
+            Q_vec = self.Q_val[state[0],state[1],state[2],0:state[1]]
+            Q_vec = np.maximum(0,Q_vec) # RELU
+            if np.sum(Q_vec) == 0: return np.random.randint(1,state[1]+1)
+            p_vals = Q_vec/np.sum(Q_vec)
+            return np.argmax(np.random.multinomial(1,p_vals)) + 1
 
     def plot(self,type,save_data):
         if type == 'train':
@@ -392,6 +405,7 @@ class SARSA_QTable():
             for i,y in enumerate(self.test_win_percent):
                     ax4.text(i, y, y, ha = 'center',fontweight='bold',fontsize = 12)
 
+            ax4.set_ylim([0,100])
             if save_data: fig2.savefig(self.directory + 'TestResults/' + self.strat_label + self.label + '.png')
             else: plt.show()
             plt.close()
@@ -409,7 +423,7 @@ class SARSA_QTable():
         for episode in tqdm(range(self.n),ncols=100):
 
             state = env.reset(self.opp_strat_vector[episode])
-            action = self.get_action(state)
+            action = self.get_action(state,self.epsilon)
             
             done = False
 
@@ -419,9 +433,9 @@ class SARSA_QTable():
                 state_prime, reward, done, _ = env.step(action)
 
                 # Get Action e-greedy 
-                action_prime = self.get_action(state_prime)
+                action_prime = self.get_action(state_prime,self.epsilon)
 
-                # SARSA tabular update
+                # SARSA tabular update (Q = Q + alpha * (r + gamma*Q' - Q))
                 td_update = (reward + self.gamma * self.Q_val[state_prime[0],state_prime[1],state_prime[2],action_prime-1]
                     -self.Q_val[state[0],state[1],state[2],action-1])
 
@@ -448,7 +462,7 @@ class SARSA_QTable():
         
         return self.train_history
 
-    def evaluate(self,save_data=True):
+    def evaluate(self,save_data=True,output_type=1):
         print('Evaluating:')
         test_wins = np.zeros((5,self.n_test))
 
@@ -466,7 +480,7 @@ class SARSA_QTable():
                 state = env.reset(OPP_Strat[episode])
                 done = False
                 while not done:
-                    action = self.get_action(state)
+                    action = self.get_action(state,0,output_type)
                     state, reward, done, _ = env.step(action)
 
                 test_wins[opp_strategy-1,episode] = int(reward > 0)

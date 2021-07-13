@@ -83,6 +83,7 @@ for episode in tqdm(range(NUM_EPISODES)):
 
         # Get Action e-greedy 
         action_prime = get_action(state_prime,Q_val)
+        
 
         # SARSA tabular update (Section 6.5 S.B., psuedocode)
         TD_error = (reward + GAMMA * Q_val[state_prime[0],state_prime[1],state_prime[2],action_prime-1]

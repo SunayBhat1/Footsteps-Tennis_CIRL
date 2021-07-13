@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 from urllib import request
 import sys
-import pandas as pd
 
 notify = True
 key = "Lmdwc3Ei4h0vfiIwLA4K0"
