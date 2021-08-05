@@ -87,6 +87,7 @@ class PaperTennisEnv(gym.Env):
         self.opponent_strategy = opponent_strategy
         self.opponent_source = opponent_source
         self.history = [self.state]
+        self.round_history = []
         self.viewer = None
 
         if opponent_source == 'Fixed': self.Opponent = PT_Fixed_Oppenent()
@@ -136,14 +137,16 @@ class PaperTennisEnv(gym.Env):
         # Update state variables
         self.state = (G,S1,S2)
         self.history.append(self.state)
+        self.round_history.append(G > 0)
 
-        return self.state, reward, done, {'history':self.history}
+        return self.state, reward, done, {'history':self.history,'round history':self.round_history}
 
     def reset(self,opponent_strategy=4):
 
         self.state = self.INIT_STATE
         self.opponent_strategy = opponent_strategy
         self.history = [self.state]
+        self.round_history = []
         self.action_space = spaces.Discrete(self.state[1]+1)
         return self.state
 
@@ -253,6 +256,7 @@ class PaperTennis2AgentEnv(gym.Env):
         self.state = self.INIT_STATE
         self.Opponent = PT_Oppenent()
         self.history = [self.state]
+        self.round_history = []
         self.viewer = None
 
         self.action_space1 = spaces.Discrete(self.state[1]+1)
@@ -300,13 +304,15 @@ class PaperTennis2AgentEnv(gym.Env):
         # Update state variables
         self.state = (G,S1,S2)
         self.history.append(self.state)
+        self.round_history.append(G < 0)
 
-        return self.state, reward, done, {'history':self.history}
+        return self.state, reward, done, {'history':self.history,'round history':self.round_history}
 
     def reset(self):
 
         self.state = self.INIT_STATE
         self.history = [self.state]
+        self.round_history = []
         self.action_space1 = spaces.Discrete(self.state[1]+1)
         self.action_space2 = spaces.Discrete(self.state[2]+1)
         return self.state
