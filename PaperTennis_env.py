@@ -254,9 +254,8 @@ class PaperTennis2AgentEnv(gym.Env):
 
         self.INIT_STATE = (0,gamespace[1],gamespace[1])
         self.state = self.INIT_STATE
-        self.Opponent = PT_Oppenent()
-        self.history = [self.state]
-        self.round_history = []
+        # self.history = [self.state]
+        # self.round_history = []
         self.viewer = None
 
         self.action_space1 = spaces.Discrete(self.state[1]+1)
@@ -273,7 +272,7 @@ class PaperTennis2AgentEnv(gym.Env):
         assert (self.action_space1.contains(action1) and not (action1 == 0 and self.state[1] != 0)), error_msg
         self.action_space2 = spaces.Discrete(self.state[2]+1)
         error_msg = '{} ({!s}) Invalid action agent 2, must be integer between 1 and {}'.format(action2, type(action2),self.state[2])
-        assert (self.action_space2.contains(action2) and not (action2 == 0 and self.state[1] != 0)), error_msg
+        assert (self.action_space2.contains(action2) and not (action2 == 0 and self.state[2] != 0)), error_msg
 
         # Update player scores (S1,S2) and gamescore (G)
         (G,S1,S2) = self.state
@@ -299,20 +298,21 @@ class PaperTennis2AgentEnv(gym.Env):
         if not done: reward = 0
         else:
             if G < 0: reward = 1
-            else: reward = -1
+            if G == 0: reward = 0
+            if G > 0: reward = -1
 
         # Update state variables
         self.state = (G,S1,S2)
-        self.history.append(self.state)
-        self.round_history.append(G < 0)
+        # self.history.append(self.state)
+        # self.round_history.append(G < 0)
 
-        return self.state, reward, done, {'history':self.history,'round history':self.round_history}
+        return self.state, reward, done, {}# {'history':self.history,'round history':self.round_history}
 
     def reset(self):
 
         self.state = self.INIT_STATE
-        self.history = [self.state]
-        self.round_history = []
+        # self.history = [self.state]
+        # self.round_history = []
         self.action_space1 = spaces.Discrete(self.state[1]+1)
         self.action_space2 = spaces.Discrete(self.state[2]+1)
         return self.state
