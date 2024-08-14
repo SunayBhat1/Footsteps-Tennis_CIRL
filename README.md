@@ -1,6 +1,6 @@
 Paper Tennis 
 ==============================
-Description: An OpenAI Gym environemnt for the two player startegy game Liar's Dice
+Description: An OpenAI Gym environemnt for the two player startegy game Paper Tennis
 as well as staretgy testing and modeling. 
 
 Getting Started
